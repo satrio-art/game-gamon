@@ -1,0 +1,2679 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no">
+
+<title>Dino Run</title>
+
+<style>
+
+/* =====================================================
+   RESET
+===================================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+
+/* =====================================================
+   GAME AREA
+===================================================== */
+
+.game{
+
+    position:relative;
+
+    width:100vw;
+    height:100vh;
+
+    overflow:hidden;
+
+    background:#f7f7f7;
+
+    /*
+       JALAN DITENTUKAN DARI ATAS.
+       BUKAN DARI BAWAH.
+    */
+
+    --ground-position:52vh;
+
+    transition:
+        background 1s ease;
+}
+
+.game.night{
+    background:#111827;
+}
+
+
+/* =====================================================
+   SCORE
+===================================================== */
+
+.score{
+
+    position:absolute;
+
+    top:20px;
+    right:30px;
+
+    z-index:50;
+
+    color:#555;
+
+    font-family:monospace;
+
+    font-size:18px;
+
+    letter-spacing:2px;
+}
+
+.game.night .score{
+    color:#e5e7eb;
+}
+
+
+/* =====================================================
+   MOON
+===================================================== */
+
+.moon{
+
+    position:absolute;
+
+    top:55px;
+    right:12%;
+
+    width:65px;
+    height:65px;
+
+    border-radius:50%;
+
+    background:#f9fafb;
+
+    box-shadow:
+        0 0 25px
+        rgba(255,255,255,.4);
+
+    opacity:0;
+
+    transition:opacity 1s;
+
+    z-index:1;
+}
+
+.game.night .moon{
+    opacity:1;
+}
+
+
+/* =====================================================
+   STARS
+===================================================== */
+
+.stars{
+
+    position:absolute;
+
+    inset:0;
+
+    opacity:0;
+
+    transition:opacity 1s;
+
+    z-index:1;
+}
+
+.game.night .stars{
+    opacity:1;
+}
+
+.star{
+
+    position:absolute;
+
+    width:3px;
+    height:3px;
+
+    border-radius:50%;
+
+    background:white;
+
+    box-shadow:
+        0 0 5px white;
+}
+
+
+/* =====================================================
+   CLOUD
+===================================================== */
+
+.cloud{
+
+    position:absolute;
+
+    width:110px;
+    height:50px;
+
+    z-index:2;
+
+    opacity:.85;
+}
+
+.cloud-body{
+
+    position:absolute;
+
+    left:10px;
+    bottom:0;
+
+    width:95px;
+    height:26px;
+
+    border-radius:30px;
+
+    background:#ddd;
+}
+
+.cloud-part{
+
+    position:absolute;
+
+    border-radius:50%;
+
+    background:#ddd;
+}
+
+.cloud-part.one{
+
+    width:35px;
+    height:35px;
+
+    left:18px;
+    bottom:9px;
+}
+
+.cloud-part.two{
+
+    width:48px;
+    height:48px;
+
+    left:40px;
+    bottom:2px;
+}
+
+.cloud-part.three{
+
+    width:31px;
+    height:31px;
+
+    left:75px;
+    bottom:9px;
+}
+
+.game.night .cloud{
+    opacity:.35;
+}
+
+.game.night .cloud-body,
+.game.night .cloud-part{
+    background:#374151;
+}
+
+
+/* =====================================================
+   GROUND / JALAN
+===================================================== */
+
+.ground{
+
+    position:absolute;
+
+    left:0;
+
+    /*
+       POSISI JALAN DARI ATAS
+    */
+
+    top:var(--ground-position);
+
+    width:100%;
+
+    height:2px;
+
+    background:#535353;
+
+    z-index:5;
+
+    transition:
+        background 1s;
+}
+
+.game.night .ground{
+    background:#d1d5db;
+}
+
+
+/* =====================================================
+   DETAIL JALAN
+===================================================== */
+
+.ground-details{
+
+    position:absolute;
+
+    left:0;
+
+    top:9px;
+
+    width:100%;
+
+    height:3px;
+
+    opacity:.5;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 30px,
+            #777 30px,
+            #777 50px
+        );
+}
+
+
+/* =====================================================
+   DINO
+===================================================== */
+
+.dino{
+
+    position:absolute;
+
+    left:100px;
+
+    /*
+       Tinggi dino sekitar 65px.
+
+       DINO DITEMPELKAN
+       TEPAT DI ATAS JALAN.
+    */
+
+    top:
+        calc(
+            var(--ground-position) - 65px
+        );
+
+    width:60px;
+    height:65px;
+
+    z-index:10;
+}
+
+
+/* =====================================================
+   DINO BODY
+===================================================== */
+
+.dino .body{
+
+    position:absolute;
+
+    left:17px;
+    top:22px;
+
+    width:30px;
+    height:30px;
+
+    background:#444;
+}
+
+
+/* =====================================================
+   DINO HEAD
+===================================================== */
+
+.dino .head{
+
+    position:absolute;
+
+    left:27px;
+    top:5px;
+
+    width:27px;
+    height:27px;
+
+    background:#444;
+}
+
+
+/* =====================================================
+   DINO SNOUT
+===================================================== */
+
+.dino .snout{
+
+    position:absolute;
+
+    left:48px;
+    top:17px;
+
+    width:12px;
+    height:10px;
+
+    background:#444;
+}
+
+
+/* =====================================================
+   DINO NECK
+===================================================== */
+
+.dino .neck{
+
+    position:absolute;
+
+    left:22px;
+    top:14px;
+
+    width:15px;
+    height:24px;
+
+    background:#444;
+}
+
+
+/* =====================================================
+   DINO TAIL
+===================================================== */
+
+.dino .tail1{
+
+    position:absolute;
+
+    left:5px;
+    top:30px;
+
+    width:23px;
+    height:9px;
+
+    background:#444;
+
+    transform:
+        skewY(-25deg);
+}
+
+.dino .tail2{
+
+    position:absolute;
+
+    left:0;
+    top:25px;
+
+    width:13px;
+    height:8px;
+
+    background:#444;
+
+    transform:
+        skewY(-35deg);
+}
+
+
+/* =====================================================
+   EYE
+===================================================== */
+
+.dino .eye{
+
+    position:absolute;
+
+    left:45px;
+    top:11px;
+
+    width:5px;
+    height:5px;
+
+    background:white;
+}
+
+
+/* =====================================================
+   ARM
+===================================================== */
+
+.dino .arm{
+
+    position:absolute;
+
+    left:38px;
+    top:35px;
+
+    width:15px;
+    height:6px;
+
+    background:#444;
+
+    transform:rotate(20deg);
+}
+
+
+/* =====================================================
+   LEGS
+===================================================== */
+
+.dino .leg{
+
+    position:absolute;
+
+    bottom:0;
+
+    width:8px;
+    height:19px;
+
+    background:#444;
+}
+
+.dino .leg.back{
+    left:20px;
+}
+
+.dino .leg.front{
+    left:35px;
+}
+
+
+/* =====================================================
+   RUNNING
+===================================================== */
+
+.dino.running .leg.back{
+
+    animation:
+        legBack .18s infinite alternate;
+}
+
+.dino.running .leg.front{
+
+    animation:
+        legFront .18s infinite alternate;
+}
+
+@keyframes legBack{
+
+    from{
+        transform:translateY(0);
+    }
+
+    to{
+        transform:translateY(-4px);
+    }
+}
+
+@keyframes legFront{
+
+    from{
+        transform:translateY(-4px);
+    }
+
+    to{
+        transform:translateY(0);
+    }
+}
+
+
+/* =====================================================
+   OBSTACLE
+===================================================== */
+
+.obstacle{
+
+    position:absolute;
+
+    right:-120px;
+
+    /*
+       KAKTUS BERADA TEPAT
+       DI ATAS JALAN.
+    */
+
+    top:
+        calc(
+            var(--ground-position) - 65px
+        );
+
+    height:65px;
+
+    z-index:8;
+}
+
+
+/* =====================================================
+   CACTUS BASIC
+===================================================== */
+
+.cactus-part{
+
+    position:absolute;
+
+    background:#4b4b4b;
+
+    border-radius:4px;
+}
+
+
+/* =====================================================
+   SMALL CACTUS
+===================================================== */
+
+.type-small{
+
+    width:18px;
+    height:38px;
+}
+
+.type-small .main{
+
+    width:18px;
+    height:38px;
+
+    left:0;
+    bottom:0;
+}
+
+.type-small .arm-left{
+
+    width:10px;
+    height:20px;
+
+    left:-7px;
+    bottom:8px;
+}
+
+.type-small .arm-right{
+
+    width:10px;
+    height:17px;
+
+    right:-7px;
+    bottom:15px;
+}
+
+
+/* =====================================================
+   TALL CACTUS
+===================================================== */
+
+.type-tall{
+
+    width:23px;
+    height:60px;
+}
+
+.type-tall .main{
+
+    width:23px;
+    height:60px;
+
+    left:0;
+    bottom:0;
+}
+
+.type-tall .arm-left{
+
+    width:12px;
+    height:27px;
+
+    left:-9px;
+    bottom:15px;
+}
+
+.type-tall .arm-right{
+
+    width:12px;
+    height:30px;
+
+    right:-9px;
+    bottom:22px;
+}
+
+
+/* =====================================================
+   DOUBLE CACTUS
+===================================================== */
+
+.type-double{
+
+    width:47px;
+    height:50px;
+}
+
+.type-double .c1{
+
+    width:19px;
+    height:45px;
+
+    left:0;
+    bottom:0;
+}
+
+.type-double .c2{
+
+    width:19px;
+    height:50px;
+
+    right:0;
+    bottom:0;
+}
+
+.type-double .arm1{
+
+    width:10px;
+    height:23px;
+
+    left:-7px;
+    bottom:13px;
+}
+
+.type-double .arm2{
+
+    width:10px;
+    height:24px;
+
+    right:10px;
+    bottom:18px;
+}
+
+
+/* =====================================================
+   TRIPLE CACTUS
+===================================================== */
+
+.type-triple{
+
+    width:70px;
+    height:55px;
+}
+
+.type-triple .c1{
+
+    position:absolute;
+
+    left:0;
+    bottom:0;
+
+    width:18px;
+    height:42px;
+
+    background:#4b4b4b;
+}
+
+.type-triple .c2{
+
+    position:absolute;
+
+    left:25px;
+    bottom:0;
+
+    width:20px;
+    height:55px;
+
+    background:#4b4b4b;
+}
+
+.type-triple .c3{
+
+    position:absolute;
+
+    right:0;
+    bottom:0;
+
+    width:18px;
+    height:38px;
+
+    background:#4b4b4b;
+}
+
+
+/* =====================================================
+   START SCREEN
+===================================================== */
+
+.start-screen{
+
+    position:absolute;
+
+    inset:0;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    flex-direction:column;
+
+    text-align:center;
+
+    background:#f7f7f7;
+
+    z-index:90;
+
+    transition:
+        opacity .4s,
+        visibility .4s;
+}
+
+.game.night .start-screen{
+    background:#111827;
+}
+
+.start-screen.hide{
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+}
+
+
+/* =====================================================
+   START DINO
+===================================================== */
+
+.start-dino{
+
+    position:relative;
+
+    width:60px;
+    height:65px;
+
+    margin-bottom:12px;
+
+    animation:
+        startDino .8s infinite alternate;
+}
+
+.start-dino .body{
+
+    position:absolute;
+
+    left:17px;
+    top:22px;
+
+    width:30px;
+    height:30px;
+
+    background:#444;
+}
+
+.start-dino .head{
+
+    position:absolute;
+
+    left:27px;
+    top:5px;
+
+    width:27px;
+    height:27px;
+
+    background:#444;
+}
+
+.start-dino .snout{
+
+    position:absolute;
+
+    left:48px;
+    top:17px;
+
+    width:12px;
+    height:10px;
+
+    background:#444;
+}
+
+.start-dino .neck{
+
+    position:absolute;
+
+    left:22px;
+    top:14px;
+
+    width:15px;
+    height:24px;
+
+    background:#444;
+}
+
+.start-dino .tail1{
+
+    position:absolute;
+
+    left:5px;
+    top:30px;
+
+    width:23px;
+    height:9px;
+
+    background:#444;
+
+    transform:skewY(-25deg);
+}
+
+.start-dino .tail2{
+
+    position:absolute;
+
+    left:0;
+    top:25px;
+
+    width:13px;
+    height:8px;
+
+    background:#444;
+
+    transform:skewY(-35deg);
+}
+
+.start-dino .eye{
+
+    position:absolute;
+
+    left:45px;
+    top:11px;
+
+    width:5px;
+    height:5px;
+
+    background:white;
+}
+
+.start-dino .arm{
+
+    position:absolute;
+
+    left:38px;
+    top:35px;
+
+    width:15px;
+    height:6px;
+
+    background:#444;
+}
+
+.start-dino .leg{
+
+    position:absolute;
+
+    bottom:0;
+
+    width:8px;
+    height:19px;
+
+    background:#444;
+}
+
+.start-dino .leg.one{
+    left:20px;
+}
+
+.start-dino .leg.two{
+    left:35px;
+}
+
+@keyframes startDino{
+
+    from{
+        transform:translateY(0);
+    }
+
+    to{
+        transform:translateY(-5px);
+    }
+}
+
+
+/* =====================================================
+   START TEXT
+===================================================== */
+
+.start-title{
+
+    font-size:38px;
+
+    letter-spacing:5px;
+
+    color:#444;
+
+    margin-bottom:15px;
+}
+
+.start-instruction{
+
+    font-size:18px;
+
+    color:#666;
+
+    margin-bottom:7px;
+}
+
+.start-instruction b{
+    color:#333;
+}
+
+.start-tap{
+
+    color:#999;
+
+    font-size:13px;
+}
+
+
+/* =====================================================
+   CONTROL TEXT
+===================================================== */
+
+.start-text{
+
+    position:absolute;
+
+    /*
+       DITARUH DI BAWAH JALAN
+    */
+
+    top:
+        calc(
+            var(--ground-position) + 25px
+        );
+
+    left:50%;
+
+    transform:
+        translateX(-50%);
+
+    color:#888;
+
+    font-size:14px;
+
+    white-space:nowrap;
+
+    z-index:20;
+}
+
+.game.night .start-text{
+    color:#9ca3af;
+}
+
+
+/* =====================================================
+   GAME OVER
+===================================================== */
+
+.game-over{
+
+    position:absolute;
+
+    inset:0;
+
+    display:none;
+
+    justify-content:center;
+    align-items:center;
+
+    flex-direction:column;
+
+    text-align:center;
+
+    background:
+        rgba(247,247,247,.94);
+
+    z-index:100;
+}
+
+.game-over.show{
+    display:flex;
+}
+
+.game.night .game-over{
+
+    background:
+        rgba(17,24,39,.95);
+}
+
+
+/* =====================================================
+   GAME OVER TITLE
+===================================================== */
+
+.game-over h1{
+
+    font-size:40px;
+
+    color:#333;
+
+    margin-bottom:18px;
+}
+
+.game.night .game-over h1{
+    color:white;
+}
+
+
+/* =====================================================
+   GAME OVER MESSAGE
+===================================================== */
+
+.message{
+
+    min-height:34px;
+
+    max-width:600px;
+
+    padding:0 20px;
+
+    margin-bottom:25px;
+
+    color:#555;
+
+    font-size:20px;
+
+    line-height:1.5;
+}
+
+.game.night .message{
+    color:#d1d5db;
+}
+
+
+/* =====================================================
+   RETRY BUTTON
+===================================================== */
+
+.retry{
+
+    border:0;
+
+    padding:
+        13px 32px;
+
+    border-radius:6px;
+
+    background:#333;
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.retry:hover{
+
+    background:#111;
+
+    transform:
+        translateY(-2px);
+}
+
+.retry:active{
+
+    transform:
+        scale(.96);
+}
+
+
+/* =====================================================
+   HP / TABLET
+===================================================== */
+
+@media(max-width:700px){
+
+    /*
+       POSISI JALAN DI HP.
+       52vh = sekitar tengah.
+    */
+
+    .game{
+
+        --ground-position:52vh;
+
+    }
+
+
+    /* DINO */
+
+    .dino{
+
+        left:40px;
+
+        top:
+            calc(
+                var(--ground-position) - 55px
+            );
+
+        transform:
+            scale(.85);
+
+        transform-origin:
+            bottom left;
+    }
+
+
+    /* KAKTUS */
+
+    .obstacle{
+
+        top:
+            calc(
+                var(--ground-position) - 55px
+            );
+
+        transform:
+            scale(.85);
+
+        transform-origin:
+            bottom right;
+    }
+
+
+    /* CONTROL */
+
+    .start-text{
+
+        top:
+            calc(
+                var(--ground-position) + 25px
+            );
+
+        font-size:12px;
+    }
+
+
+    /* SCORE */
+
+    .score{
+
+        top:17px;
+        right:15px;
+
+        font-size:13px;
+    }
+
+
+    /* CLOUD */
+
+    .cloud{
+
+        transform:
+            scale(.85);
+    }
+
+
+    /* START SCREEN */
+
+    .start-title{
+
+        font-size:30px;
+
+    }
+
+    .start-instruction{
+
+        font-size:16px;
+
+    }
+
+
+    /* GAME OVER */
+
+    .game-over h1{
+
+        font-size:30px;
+
+    }
+
+    .message{
+
+        font-size:17px;
+
+        max-width:90vw;
+
+    }
+
+}
+
+
+/* =====================================================
+   HP KECIL
+===================================================== */
+
+@media(max-width:400px){
+
+    .game{
+
+        /*
+           Sedikit lebih naik pada HP kecil.
+        */
+
+        --ground-position:50vh;
+
+    }
+
+
+    .dino{
+
+        left:28px;
+
+        top:
+            calc(
+                var(--ground-position) - 53px
+            );
+
+        transform:
+            scale(.78);
+
+    }
+
+
+    .obstacle{
+
+        top:
+            calc(
+                var(--ground-position) - 53px
+            );
+
+        transform:
+            scale(.78);
+
+    }
+
+
+    .start-text{
+
+        top:
+            calc(
+                var(--ground-position) + 23px
+            );
+
+        font-size:11px;
+
+    }
+
+}
+
+
+/* =====================================================
+   HP LANDSCAPE
+===================================================== */
+
+@media(max-width:900px) and (orientation:landscape){
+
+    .game{
+
+        --ground-position:58vh;
+
+    }
+
+    .dino{
+
+        top:
+            calc(
+                var(--ground-position) - 55px
+            );
+
+    }
+
+    .obstacle{
+
+        top:
+            calc(
+                var(--ground-position) - 55px
+            );
+
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<div class="game" id="game">
+
+
+    <!-- =================================================
+         SCORE
+    ================================================== -->
+
+    <div class="score">
+
+        JARAK:
+
+        <span id="score">
+            00000
+        </span>
+
+        m
+
+    </div>
+
+
+    <!-- =================================================
+         MOON
+    ================================================== -->
+
+    <div class="moon"></div>
+
+
+    <!-- =================================================
+         STARS
+    ================================================== -->
+
+    <div class="stars">
+
+        <span
+            class="star"
+            style="top:10%;left:8%">
+        </span>
+
+        <span
+            class="star"
+            style="top:18%;left:18%">
+        </span>
+
+        <span
+            class="star"
+            style="top:8%;left:30%">
+        </span>
+
+        <span
+            class="star"
+            style="top:25%;left:42%">
+        </span>
+
+        <span
+            class="star"
+            style="top:13%;left:55%">
+        </span>
+
+        <span
+            class="star"
+            style="top:29%;left:68%">
+        </span>
+
+        <span
+            class="star"
+            style="top:9%;left:78%">
+        </span>
+
+        <span
+            class="star"
+            style="top:22%;left:91%">
+        </span>
+
+        <span
+            class="star"
+            style="top:37%;left:15%">
+        </span>
+
+        <span
+            class="star"
+            style="top:33%;left:82%">
+        </span>
+
+    </div>
+
+
+    <!-- =================================================
+         CLOUDS
+    ================================================== -->
+
+    <div
+        class="cloud"
+        id="cloud1"
+    >
+
+        <div class="cloud-body"></div>
+
+        <div class="cloud-part one"></div>
+
+        <div class="cloud-part two"></div>
+
+        <div class="cloud-part three"></div>
+
+    </div>
+
+
+    <div
+        class="cloud"
+        id="cloud2"
+    >
+
+        <div class="cloud-body"></div>
+
+        <div class="cloud-part one"></div>
+
+        <div class="cloud-part two"></div>
+
+        <div class="cloud-part three"></div>
+
+    </div>
+
+
+    <div
+        class="cloud"
+        id="cloud3"
+    >
+
+        <div class="cloud-body"></div>
+
+        <div class="cloud-part one"></div>
+
+        <div class="cloud-part two"></div>
+
+        <div class="cloud-part three"></div>
+
+    </div>
+
+
+    <div
+        class="cloud"
+        id="cloud4"
+    >
+
+        <div class="cloud-body"></div>
+
+        <div class="cloud-part one"></div>
+
+        <div class="cloud-part two"></div>
+
+        <div class="cloud-part three"></div>
+
+    </div>
+
+
+    <!-- =================================================
+         START SCREEN
+    ================================================== -->
+
+    <div
+        class="start-screen"
+        id="startScreen"
+    >
+
+        <div class="start-dino">
+
+            <div class="tail1"></div>
+
+            <div class="tail2"></div>
+
+            <div class="body"></div>
+
+            <div class="neck"></div>
+
+            <div class="head"></div>
+
+            <div class="snout"></div>
+
+            <div class="eye"></div>
+
+            <div class="arm"></div>
+
+            <div class="leg one"></div>
+
+            <div class="leg two"></div>
+
+        </div>
+
+
+        <h1 class="start-title">
+            DINO RUN
+        </h1>
+
+
+        <p class="start-instruction">
+
+            Tekan
+            <b>SPACE</b>
+            untuk mulai
+
+        </p>
+
+
+        <span class="start-tap">
+
+            atau TAP layar
+
+        </span>
+
+    </div>
+
+
+    <!-- =================================================
+         DINO
+    ================================================== -->
+
+    <div
+        class="dino"
+        id="dino"
+    >
+
+        <div class="tail1"></div>
+
+        <div class="tail2"></div>
+
+        <div class="body"></div>
+
+        <div class="neck"></div>
+
+        <div class="head"></div>
+
+        <div class="snout"></div>
+
+        <div class="eye"></div>
+
+        <div class="arm"></div>
+
+        <div class="leg back"></div>
+
+        <div class="leg front"></div>
+
+    </div>
+
+
+    <!-- =================================================
+         OBSTACLE
+    ================================================== -->
+
+    <div
+        class="obstacle type-small"
+        id="obstacle"
+    ></div>
+
+
+    <!-- =================================================
+         GROUND
+    ================================================== -->
+
+    <div class="ground">
+
+        <div class="ground-details"></div>
+
+    </div>
+
+
+    <!-- =================================================
+         CONTROL
+    ================================================== -->
+
+    <div class="start-text">
+
+        SPACE / ↑ / TAP untuk melompat
+
+    </div>
+
+
+    <!-- =================================================
+         GAME OVER
+    ================================================== -->
+
+    <div
+        class="game-over"
+        id="gameOver"
+    >
+
+        <h1>
+            GAME OVER
+        </h1>
+
+
+        <div
+            class="message"
+            id="message"
+        ></div>
+
+
+        <button
+            class="retry"
+            id="retry"
+        >
+
+            COBA LAGI
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+/* =====================================================
+   ELEMENT
+===================================================== */
+
+const game =
+    document.getElementById("game");
+
+const dino =
+    document.getElementById("dino");
+
+const obstacle =
+    document.getElementById("obstacle");
+
+const scoreText =
+    document.getElementById("score");
+
+const startScreen =
+    document.getElementById("startScreen");
+
+const gameOver =
+    document.getElementById("gameOver");
+
+const message =
+    document.getElementById("message");
+
+const retry =
+    document.getElementById("retry");
+
+const clouds =
+    document.querySelectorAll(".cloud");
+
+
+/* =====================================================
+   GAME STATE
+===================================================== */
+
+let gameStarted = false;
+
+let gameRunning = false;
+
+
+/* =====================================================
+   DINO PHYSICS
+===================================================== */
+
+let jumping = false;
+
+let dinoY = 0;
+
+let velocityY = 0;
+
+const gravity = 0.75;
+
+const jumpPower = 13;
+
+
+/* =====================================================
+   GAME SPEED
+===================================================== */
+
+let speed = 7;
+
+
+/* =====================================================
+   OBSTACLE
+===================================================== */
+
+let obstacleX = -120;
+
+
+/* =====================================================
+   DISTANCE
+===================================================== */
+
+let distance = 0;
+
+
+/* =====================================================
+   CLOUD MOVEMENT
+===================================================== */
+
+let cloudData = [
+
+    {
+        x:15,
+        y:14,
+        speed:.025
+    },
+
+    {
+        x:50,
+        y:28,
+        speed:.018
+    },
+
+    {
+        x:78,
+        y:11,
+        speed:.030
+    },
+
+    {
+        x:105,
+        y:38,
+        speed:.015
+    }
+
+];
+
+
+/* =====================================================
+   GAME OVER WORDS
+===================================================== */
+
+const words = [
+
+"menabrak kenyataan bahwa dia suka sama yang lain",
+
+"kamu terlalu mencintainya hingga lupa segalanya.",
+
+"masih GAMON sama yang kemarin?",
+
+"masih belum bisa melupakannya?",
+
+"ternyata aku mudah untuk di lupakan ya",
+
+"aku akan menunggumu di sini",
+
+"orang sepele seperti aku bisa apa?",
+
+"cukup jauh untuk kecewa",
+
+"gagal bersamamu untuk selamanya.",
+
+"dia kok bisa lupain gw ya tapi gw kaga",
+
+"belum waktunya berakhir tapi sudah berakhir",
+
+"kembalikan dia yang dulu bisa ga?"
+
+];
+
+let lastWord = -1;
+
+
+/* =====================================================
+   GET GROUND POSITION
+===================================================== */
+
+function getGroundPosition(){
+
+    return game
+        .getBoundingClientRect()
+        .height
+        *
+        (
+            parseFloat(
+                getComputedStyle(game)
+                .getPropertyValue(
+                    "--ground-position"
+                )
+            ) / 100
+        );
+
+}
+
+
+/* =====================================================
+   SET DINO POSITION
+===================================================== */
+
+function updateBasePosition(){
+
+    const ground =
+        getGroundPosition();
+
+
+    /*
+       Tinggi dino.
+    */
+
+    const dinoHeight =
+        dino.offsetHeight;
+
+
+    /*
+       Karena posisi dino menggunakan
+       top dari CSS, kita hanya
+       menyimpan posisi dasarnya.
+    */
+
+    dinoY =
+        ground -
+        dinoHeight;
+
+
+    dino.style.top =
+        dinoY + "px";
+
+
+    /*
+       Kaktus berada di jalan.
+    */
+
+    obstacle.style.top =
+        (
+            ground -
+            obstacle.offsetHeight
+        ) + "px";
+
+}
+
+
+/* =====================================================
+   RANDOM GAME OVER MESSAGE
+===================================================== */
+
+function getRandomMessage(){
+
+    let index;
+
+
+    do{
+
+        index =
+            Math.floor(
+                Math.random()
+                *
+                words.length
+            );
+
+    }
+    while(
+        index === lastWord
+        &&
+        words.length > 1
+    );
+
+
+    lastWord = index;
+
+
+    return words[index];
+
+}
+
+
+/* =====================================================
+   START GAME
+===================================================== */
+
+function startGame(){
+
+    if(gameStarted)
+        return;
+
+
+    gameStarted = true;
+
+    gameRunning = true;
+
+
+    updateBasePosition();
+
+
+    startScreen.classList.add(
+        "hide"
+    );
+
+
+    dino.classList.add(
+        "running"
+    );
+
+
+    createObstacle();
+
+}
+
+
+/* =====================================================
+   JUMP
+===================================================== */
+
+function jump(){
+
+    /*
+       Jika belum dimulai,
+       tap pertama langsung mulai.
+    */
+
+    if(!gameStarted){
+
+        startGame();
+
+        return;
+
+    }
+
+
+    if(!gameRunning)
+        return;
+
+
+    if(!jumping){
+
+        jumping = true;
+
+        velocityY =
+            -jumpPower;
+
+    }
+
+}
+
+
+/* =====================================================
+   DINO UPDATE
+===================================================== */
+
+function updateDino(){
+
+    if(!gameRunning)
+        return;
+
+
+    if(!jumping)
+        return;
+
+
+    /*
+       Karena koordinat top,
+       nilai positif berarti turun.
+    */
+
+    dinoY +=
+        velocityY;
+
+
+    velocityY +=
+        gravity;
+
+
+    dino.style.top =
+        dinoY + "px";
+
+
+    const ground =
+        getGroundPosition();
+
+
+    const base =
+        ground -
+        dino.offsetHeight;
+
+
+    /*
+       Kembali ke jalan.
+    */
+
+    if(
+        dinoY >= base
+    ){
+
+        dinoY =
+            base;
+
+        velocityY = 0;
+
+        jumping = false;
+
+
+        dino.style.top =
+            base + "px";
+
+    }
+
+}
+
+
+/* =====================================================
+   CREATE OBSTACLE
+===================================================== */
+
+function createObstacle(){
+
+    obstacle.className =
+        "obstacle";
+
+
+    const type =
+        Math.floor(
+            Math.random() * 4
+        );
+
+
+    /*
+       SMALL
+    */
+
+    if(type === 0){
+
+        obstacle.classList.add(
+            "type-small"
+        );
+
+        obstacle.innerHTML = `
+
+            <div
+                class="cactus-part main">
+            </div>
+
+            <div
+                class="cactus-part arm-left">
+            </div>
+
+            <div
+                class="cactus-part arm-right">
+            </div>
+
+        `;
+
+    }
+
+
+    /*
+       TALL
+    */
+
+    else if(type === 1){
+
+        obstacle.classList.add(
+            "type-tall"
+        );
+
+        obstacle.innerHTML = `
+
+            <div
+                class="cactus-part main">
+            </div>
+
+            <div
+                class="cactus-part arm-left">
+            </div>
+
+            <div
+                class="cactus-part arm-right">
+            </div>
+
+        `;
+
+    }
+
+
+    /*
+       DOUBLE
+    */
+
+    else if(type === 2){
+
+        obstacle.classList.add(
+            "type-double"
+        );
+
+        obstacle.innerHTML = `
+
+            <div
+                class="cactus-part c1">
+            </div>
+
+            <div
+                class="cactus-part c2">
+            </div>
+
+            <div
+                class="cactus-part arm1">
+            </div>
+
+            <div
+                class="cactus-part arm2">
+            </div>
+
+        `;
+
+    }
+
+
+    /*
+       TRIPLE
+    */
+
+    else{
+
+        obstacle.classList.add(
+            "type-triple"
+        );
+
+        obstacle.innerHTML = `
+
+            <div
+                class="c1 cactus-part">
+            </div>
+
+            <div
+                class="c2 cactus-part">
+            </div>
+
+            <div
+                class="c3 cactus-part">
+            </div>
+
+        `;
+
+    }
+
+
+    /*
+       Setelah ukuran berubah,
+       kaktus ditempelkan kembali
+       ke jalan.
+    */
+
+    const ground =
+        getGroundPosition();
+
+
+    obstacle.style.top =
+        (
+            ground -
+            obstacle.offsetHeight
+        ) + "px";
+
+}
+
+
+/* =====================================================
+   OBSTACLE UPDATE
+===================================================== */
+
+function updateObstacle(){
+
+    if(!gameRunning)
+        return;
+
+
+    /*
+       Bergerak ke kiri.
+    */
+
+    obstacleX +=
+        speed;
+
+
+    obstacle.style.right =
+        obstacleX + "px";
+
+
+    /*
+       Jika sudah melewati layar.
+    */
+
+    if(
+        obstacleX >
+        window.innerWidth + 100
+    ){
+
+        obstacleX =
+            -(
+                120 +
+                Math.random() * 220
+            );
+
+
+        obstacle.style.right =
+            obstacleX + "px";
+
+
+        createObstacle();
+
+    }
+
+}
+
+
+/* =====================================================
+   DISTANCE SCORE
+===================================================== */
+
+function updateDistance(){
+
+    if(!gameRunning)
+        return;
+
+
+    /*
+       Skor berdasarkan
+       jarak perjalanan.
+    */
+
+    distance +=
+        speed * .015;
+
+
+    scoreText.textContent =
+        String(
+            Math.floor(
+                distance
+            )
+        ).padStart(
+            5,
+            "0"
+        );
+
+
+    /*
+       Game semakin cepat.
+    */
+
+    speed =
+        7 +
+        Math.min(
+            distance / 100 * .35,
+            6
+        );
+
+
+    /*
+       Siang / malam
+       setiap 300 meter.
+    */
+
+    const cycle =
+        Math.floor(
+            distance / 300
+        );
+
+
+    if(
+        cycle % 2 === 1
+    ){
+
+        game.classList.add(
+            "night"
+        );
+
+    }
+    else{
+
+        game.classList.remove(
+            "night"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   CLOUD UPDATE
+===================================================== */
+
+function updateClouds(){
+
+    if(!gameRunning)
+        return;
+
+
+    cloudData.forEach(
+        (cloud,index)=>{
+
+
+            cloud.x -=
+                cloud.speed;
+
+
+            /*
+               Keluar layar.
+            */
+
+            if(
+                cloud.x < -20
+            ){
+
+                cloud.x =
+                    105 +
+                    Math.random() * 20;
+
+
+                /*
+                   Posisi vertikal
+                   diacak.
+                */
+
+                cloud.y =
+                    8 +
+                    Math.random() * 40;
+
+            }
+
+
+            clouds[index].style.left =
+                cloud.x + "%";
+
+
+            clouds[index].style.top =
+                cloud.y + "%";
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   COLLISION
+===================================================== */
+
+function checkCollision(){
+
+    if(!gameRunning)
+        return;
+
+
+    const d =
+        dino.getBoundingClientRect();
+
+    const o =
+        obstacle.getBoundingClientRect();
+
+
+    /*
+       Collision dibuat sedikit
+       lebih kecil agar nyaman dimainkan.
+    */
+
+    const margin = 7;
+
+
+    const hit =
+
+        d.left + margin <
+        o.right - margin
+
+        &&
+
+        d.right - margin >
+        o.left + margin
+
+        &&
+
+        d.top + margin <
+        o.bottom - margin
+
+        &&
+
+        d.bottom - margin >
+        o.top + margin;
+
+
+    if(hit){
+
+        endGame();
+
+    }
+
+}
+
+
+/* =====================================================
+   GAME OVER
+===================================================== */
+
+function endGame(){
+
+    gameRunning = false;
+
+
+    dino.classList.remove(
+        "running"
+    );
+
+
+    /*
+       Hanya SATU pesan.
+    */
+
+    message.textContent =
+        getRandomMessage();
+
+
+    gameOver.classList.add(
+        "show"
+    );
+
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+function resetGame(){
+
+    gameRunning = true;
+
+    gameStarted = true;
+
+
+    jumping = false;
+
+    velocityY = 0;
+
+
+    speed = 7;
+
+    distance = 0;
+
+
+    obstacleX = -120;
+
+
+    game.classList.remove(
+        "night"
+    );
+
+
+    scoreText.textContent =
+        "00000";
+
+
+    /*
+       Hitung ulang posisi
+       arena.
+    */
+
+    updateBasePosition();
+
+
+    createObstacle();
+
+
+    dino.classList.add(
+        "running"
+    );
+
+
+    gameOver.classList.remove(
+        "show"
+    );
+
+}
+
+
+/* =====================================================
+   RESIZE
+===================================================== */
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        if(!jumping){
+
+            updateBasePosition();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   KEYBOARD
+===================================================== */
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.code === "Space"
+            ||
+            event.code === "ArrowUp"
+        ){
+
+            event.preventDefault();
+
+            jump();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   MOUSE
+===================================================== */
+
+game.addEventListener(
+    "mousedown",
+    function(event){
+
+        if(
+            event.target === retry
+        )
+            return;
+
+
+        jump();
+
+    }
+);
+
+
+/* =====================================================
+   TOUCH
+===================================================== */
+
+game.addEventListener(
+    "touchstart",
+    function(event){
+
+        if(
+            event.target === retry
+        )
+            return;
+
+
+        event.preventDefault();
+
+
+        jump();
+
+    },
+    {
+        passive:false
+    }
+);
+
+
+/* =====================================================
+   RETRY
+===================================================== */
+
+retry.addEventListener(
+    "click",
+    function(event){
+
+        event.stopPropagation();
+
+        resetGame();
+
+    }
+);
+
+
+/* =====================================================
+   INITIAL POSITION
+===================================================== */
+
+updateBasePosition();
+
+
+/* =====================================================
+   GAME LOOP
+===================================================== */
+
+function gameLoop(){
+
+    updateDino();
+
+    updateObstacle();
+
+    updateDistance();
+
+    updateClouds();
+
+    checkCollision();
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+gameLoop();
+
+</script>
+
+</body>
+</html>
